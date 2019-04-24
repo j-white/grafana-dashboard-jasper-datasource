@@ -26,37 +26,17 @@
  *     http://www.opennms.com/
  *******************************************************************************/
 
-package org.opennms.netmgt.jasper.grafana;
+package org.opennms.netmgt.grafana.model;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+public class DashboardWithMeta {
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+    private Dashboard dashboard;
 
-import javax.imageio.ImageIO;
+    public Dashboard getDashboard() {
+        return dashboard;
+    }
 
-import org.junit.Test;
-
-import net.sf.jasperreports.engine.design.JRDesignField;
-
-public class GrafanaDashboardDatasourceTest {
-
-    @Test
-    public void canLoadImageFromClasspath() throws IOException {
-        GrafanaDashboardDatasource ds = new GrafanaDashboardDatasource();
-
-        // Retrieve the image field
-        JRDesignField field = new JRDesignField();
-        field.setName(GrafanaDashboardDatasource.IMAGE_FIELD_NAME);
-        byte[] imageBytes = (byte[]) ds.getFieldValue(field);
-
-        // Load the image from the byte array and verify the dimensions
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes)) {
-            BufferedImage image = ImageIO.read(bis);
-            assertThat(image.getHeight(), equalTo(128));
-            assertThat(image.getWidth(), equalTo(128));
-        }
+    public void setDashboard(Dashboard dashboard) {
+        this.dashboard = dashboard;
     }
 }

@@ -28,10 +28,16 @@
 
 package org.opennms.netmgt.jasper.grafana;
 
+import java.io.IOException;
 import java.util.Map;
+
+import org.opennms.netmgt.grafana.GrafanaClient;
+import org.opennms.netmgt.grafana.GrafanaServerConfiguration;
+import org.opennms.netmgt.grafana.model.Dashboard;
 
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRDataset;
+import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRValueParameter;
 import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.query.JRAbstractQueryExecuter;
@@ -48,8 +54,16 @@ public class GrafanaQueryExecutor extends JRAbstractQueryExecuter {
     }
 
     @Override
-    public JRDataSource createDatasource() {
-        return new GrafanaDashboardDatasource();
+    public JRDataSource createDatasource() throws JRException {
+        final GrafanaServerConfiguration config = GrafanaServerConfiguration.fromEnv();
+        final GrafanaClient client = new GrafanaClient(config);
+        final Dashboard dashboard;
+        try {
+            dashboard = client.getDashboardByUid("eWsVEL6zz");
+        } catch (IOException e) {
+            throw new JRException(e);
+        }
+        return new GrafanaPanelDatasource(client, dashboard);
     }
 
     @Override
