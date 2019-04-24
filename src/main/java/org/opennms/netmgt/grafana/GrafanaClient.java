@@ -31,8 +31,16 @@ package org.opennms.netmgt.grafana;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.cert.CertificateException;
 import java.util.Map;
 import java.util.Objects;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.opennms.netmgt.grafana.model.Dashboard;
 import org.opennms.netmgt.grafana.model.DashboardWithMeta;
@@ -49,12 +57,16 @@ public class GrafanaClient {
     private final GrafanaServerConfiguration grafanaServerConfiguration;
 
     private final Gson gson = new Gson();
-    private final OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client;
     private final HttpUrl baseUrl;
 
     public GrafanaClient(GrafanaServerConfiguration grafanaServerConfiguration) {
         this.grafanaServerConfiguration = Objects.requireNonNull(grafanaServerConfiguration);
         baseUrl = HttpUrl.parse(grafanaServerConfiguration.getUrl());
+
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder = configureToIgnoreCertificate(builder);
+        client = builder.build();
     }
 
     public Dashboard getDashboardByUid(String uid) throws IOException {
@@ -108,7 +120,7 @@ public class GrafanaClient {
         }
     }
 
-    private byte[] inputStreamToByteArray(InputStream is) throws IOException {
+    private static byte[] inputStreamToByteArray(InputStream is) throws IOException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int nRead;
         byte[] data = new byte[1024];
@@ -119,4 +131,45 @@ public class GrafanaClient {
         return buffer.toByteArray();
     }
 
+    private static OkHttpClient.Builder configureToIgnoreCertificate(OkHttpClient.Builder builder) {
+        try {
+
+            // Create a trust manager that does not validate certificate chains
+            final TrustManager[] trustAllCerts = new TrustManager[] {
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
+                                throws CertificateException {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
+                                throws CertificateException {
+                        }
+
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return new java.security.cert.X509Certificate[]{};
+                        }
+                    }
+            };
+
+            // Install the all-trusting trust manager
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            // Create an ssl socket factory with our all-trusting manager
+            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            builder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0]);
+            builder.hostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return builder;
+    }
 }
