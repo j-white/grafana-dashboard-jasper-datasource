@@ -39,14 +39,23 @@ import net.sf.jasperreports.engine.JRRewindableDataSource;
 public class GrafanaDashboardDatasource implements JRRewindableDataSource {
     public static final String IMAGE_FIELD_NAME = "png";
 
+    int index = 0;
+
+    @Override
     public void moveFirst() {
-        // pass
+        index = 0;
     }
 
+    @Override
     public boolean next() {
+        if (index == 0) {
+            index = 1;
+            return true;
+        }
         return false;
     }
 
+    @Override
     public Object getFieldValue(JRField jrField) {
         if (Objects.equals(IMAGE_FIELD_NAME, jrField.getName())) {
             try {
