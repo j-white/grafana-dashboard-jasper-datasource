@@ -29,37 +29,41 @@
 package org.opennms.netmgt.jasper.grafana;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
+import java.util.Collections;
 
 import org.junit.Test;
 
+import net.sf.jasperreports.engine.DefaultJasperReportsContext;
+import net.sf.jasperreports.engine.JRDataset;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperReportsContext;
+import net.sf.jasperreports.engine.design.JRDesignDataset;
 import net.sf.jasperreports.engine.design.JRDesignField;
 
 public class GrafanaPanelDatasourceTest {
 
     @Test
-    public void canLoadImageFromClasspath() throws IOException {
-        /*
-        GrafanaPanelDatasource ds = new GrafanaPanelDatasource();
+    public void canUseIt() throws JRException {
+        JasperReportsContext context = DefaultJasperReportsContext.getInstance();
+        JRDataset dataset = new JRDesignDataset(false);
 
-        // Retrieve the image field
+        GrafanaQueryExecutor grafanaQueryExecutor = new GrafanaQueryExecutor(context, dataset, Collections.emptyMap());
+        GrafanaPanelDatasource ds = grafanaQueryExecutor.createDatasource();
+
         JRDesignField field = new JRDesignField();
         field.setName(GrafanaPanelDatasource.IMAGE_FIELD_NAME);
-        byte[] imageBytes = (byte[]) ds.getFieldValue(field);
 
-        // Load the image from the byte array and verify the dimensions
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes)) {
-            BufferedImage image = ImageIO.read(bis);
-            assertThat(image.getHeight(), equalTo(128));
-            assertThat(image.getWidth(), equalTo(128));
+        int graphsRendered = 0;
+        while(ds.next()) {
+            byte[] pngBytes = (byte[])ds.getFieldValue(field);
+            assertThat(pngBytes.length, greaterThan(1));
+            graphsRendered++;
         }
-        */
+
+        assertThat(graphsRendered, greaterThanOrEqualTo(1));
     }
 
 }

@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.opennms.netmgt.grafana.GrafanaClient;
 import org.opennms.netmgt.grafana.model.Dashboard;
@@ -63,12 +64,16 @@ public class GrafanaPanelDatasource implements JRRewindableDataSource {
 
     @Override
     public void moveFirst() {
-        iterator = dashboard.getPanels().iterator();
+        iterator = dashboard.getPanels().stream()
+                // Dont' render rows
+                .filter(p -> !Objects.equals("row", p.getType()))
+                .collect(Collectors.toList())
+                .iterator();
     }
 
     @Override
     public boolean next() {
-        if (iterator.hasNext()) {
+        if (!iterator.hasNext()) {
             return false;
         }
         currentPanel = iterator.next();
@@ -90,7 +95,7 @@ public class GrafanaPanelDatasource implements JRRewindableDataSource {
         } else if (Objects.equals(IMAGE_FIELD_NAME, jrField.getName())) {
             try {
                 return client.renderPngForPanel(dashboard, currentPanel, width, height,
-                        System.currentTimeMillis(), System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1), variables);
+                        System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1), System.currentTimeMillis(), variables);
             } catch (IOException e) {
                 throw new JRException(e);
             }

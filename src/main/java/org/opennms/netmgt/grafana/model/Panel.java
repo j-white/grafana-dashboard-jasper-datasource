@@ -32,6 +32,7 @@ public class Panel {
 
     private Integer id;
     private String title;
+    private String type;
 
     public Integer getId() {
         return id;
@@ -47,5 +48,13 @@ public class Panel {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

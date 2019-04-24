@@ -54,7 +54,7 @@ public class GrafanaQueryExecutor extends JRAbstractQueryExecuter {
     }
 
     @Override
-    public JRDataSource createDatasource() throws JRException {
+    public GrafanaPanelDatasource createDatasource() throws JRException {
         final GrafanaServerConfiguration config = GrafanaServerConfiguration.fromEnv();
         final GrafanaClient client = new GrafanaClient(config);
         final Dashboard dashboard;

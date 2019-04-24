@@ -64,7 +64,7 @@ public class GrafanaClientTest {
         Dashboard dashboard = client.getDashboardByUid("eWsVEL6zz");
         assertThat(dashboard.getPanels(), hasSize(7));
 
-        stubFor(get(urlEqualTo("/render/d-solo/uid/eWsVEL6zz/flow?panelId=9&from=0&to=1&width=128&height=128"))
+        stubFor(get(urlEqualTo("/render/d-solo/eWsVEL6zz/flow?panelId=9&from=0&to=1&width=128&height=128"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "image/png")
                         .withBodyFile("panel.png")));

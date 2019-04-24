@@ -96,7 +96,6 @@ public class GrafanaClient {
         final HttpUrl.Builder builder = baseUrl.newBuilder()
                 .addPathSegment("render")
                 .addPathSegment("d-solo")
-                .addPathSegment("uid")
                 .addPathSegment(dashboard.getUid())
                 .addPathSegments("flow"); //FIXME: What should this be?
 
@@ -113,6 +112,7 @@ public class GrafanaClient {
                 .addHeader("Authorization", "Bearer " + grafanaServerConfiguration.getApiKey())
                 .build();
 
+        //System.out.println("MOO: " + request);
         try (Response response = client.newCall(request).execute()) {
             try (InputStream is = response.body().byteStream()) {
                 return inputStreamToByteArray(is);
