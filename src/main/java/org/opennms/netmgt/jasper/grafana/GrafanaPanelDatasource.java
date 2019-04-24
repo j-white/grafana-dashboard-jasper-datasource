@@ -63,7 +63,7 @@ public class GrafanaPanelDatasource implements JRRewindableDataSource {
 
     @Override
     public void moveFirst() {
-        dashboard.getPanels().iterator();
+        iterator = dashboard.getPanels().iterator();
     }
 
     @Override
