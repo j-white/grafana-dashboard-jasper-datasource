@@ -28,37 +28,10 @@
 
 package org.opennms.netmgt.grafana.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class Dashboard implements PanelContainer {
+public interface PanelContainer {
 
-    private String uid;
-    private String title;
-    private List<Panel> panels = new ArrayList<>();
+    List<Panel> getPanels();
 
-    public String getUid() {
-        return uid;
-    }
-
-    public void setUid(String uid) {
-        this.uid = uid;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    @Override
-    public List<Panel> getPanels() {
-        return panels;
-    }
-
-    public void setPanels(List<Panel> panels) {
-        this.panels = panels;
-    }
 }

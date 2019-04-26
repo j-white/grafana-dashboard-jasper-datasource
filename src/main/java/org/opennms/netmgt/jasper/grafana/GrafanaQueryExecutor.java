@@ -35,7 +35,6 @@ import org.opennms.netmgt.grafana.GrafanaClient;
 import org.opennms.netmgt.grafana.GrafanaServerConfiguration;
 import org.opennms.netmgt.grafana.model.Dashboard;
 
-import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRValueParameter;
@@ -55,6 +54,10 @@ public class GrafanaQueryExecutor extends JRAbstractQueryExecuter {
 
     @Override
     public GrafanaPanelDatasource createDatasource() throws JRException {
+        final String widthString = this.getStringParameterOrProperty("width");
+        final String heightString = this.getStringParameterOrProperty("height");
+        final GrafanaQuery grafanaQuery = new GrafanaQuery(widthString, heightString);
+
         final GrafanaServerConfiguration config = GrafanaServerConfiguration.fromEnv();
         final GrafanaClient client = new GrafanaClient(config);
         final Dashboard dashboard;
@@ -63,7 +66,7 @@ public class GrafanaQueryExecutor extends JRAbstractQueryExecuter {
         } catch (IOException e) {
             throw new JRException(e);
         }
-        return new GrafanaPanelDatasource(client, dashboard);
+        return new GrafanaPanelDatasource(client, dashboard, grafanaQuery);
     }
 
     @Override

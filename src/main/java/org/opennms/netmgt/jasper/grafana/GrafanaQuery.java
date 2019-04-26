@@ -26,39 +26,37 @@
  *     http://www.opennms.com/
  *******************************************************************************/
 
-package org.opennms.netmgt.grafana.model;
+package org.opennms.netmgt.jasper.grafana;
 
-import java.util.ArrayList;
-import java.util.List;
+public class GrafanaQuery {
 
-public class Dashboard implements PanelContainer {
+    public static final int DEFAULT_WIDTH = 600;
+    public static final int DEFAULT_HEIGHT = 400;
 
-    private String uid;
-    private String title;
-    private List<Panel> panels = new ArrayList<>();
+    private final int width;
+    private final int height;
 
-    public String getUid() {
-        return uid;
+    public GrafanaQuery(String width, String height) {
+        this.width = intOrDefault(width, DEFAULT_WIDTH);
+        this.height = intOrDefault(height, DEFAULT_HEIGHT);
     }
 
-    public void setUid(String uid) {
-        this.uid = uid;
+    public int getWidth() {
+        return width;
     }
 
-    public String getTitle() {
-        return title;
+    public int getHeight() {
+        return height;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    @Override
-    public List<Panel> getPanels() {
-        return panels;
-    }
-
-    public void setPanels(List<Panel> panels) {
-        this.panels = panels;
+    private static int intOrDefault(String intAsString, int defaultValue) {
+        if (intAsString == null) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(intAsString);
+        } catch (NumberFormatException nfe) {
+            return defaultValue;
+        }
     }
 }

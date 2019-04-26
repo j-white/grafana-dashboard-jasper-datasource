@@ -104,7 +104,8 @@ public class GrafanaClient {
                 .addQueryParameter("from", Long.toString(from))
                 .addQueryParameter("to", Long.toString(to))
                 .addQueryParameter("width", Integer.toString(width))
-                .addQueryParameter("height", Integer.toString(height));
+                .addQueryParameter("height", Integer.toString(height))
+                .addQueryParameter("theme", "light"); // Use the light theme
         variables.forEach((k,v) -> builder.addQueryParameter("var-"+ k, v));
 
         final Request request = new Request.Builder()

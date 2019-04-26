@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.opennms.netmgt.grafana.GrafanaClient;
 import org.opennms.netmgt.grafana.model.Dashboard;
@@ -48,25 +49,34 @@ public class GrafanaPanelDatasource implements JRRewindableDataSource {
     public static final String IMAGE_FIELD_NAME = "png";
     public static final String WIDTH_FIELD_NAME = "width";
     public static final String HEIGHT_FIELD_NAME = "height";
+    public static final String TITLE_FIELD_NAME = "title";
+    public static final String DATASOURCE_FIELD_NAME = "datasource";
 
     private final GrafanaClient client;
     private final Dashboard dashboard;
+    private final GrafanaQuery query;
 
     // state
     private Iterator<Panel> iterator;
     private Panel currentPanel;
 
-    public GrafanaPanelDatasource(GrafanaClient client, Dashboard dashboard) {
+    public GrafanaPanelDatasource(GrafanaClient client, Dashboard dashboard, GrafanaQuery query) {
         this.client = Objects.requireNonNull(client);
         this.dashboard = Objects.requireNonNull(dashboard);
+        this.query = Objects.requireNonNull(query);
         moveFirst();
     }
 
     @Override
     public void moveFirst() {
         iterator = dashboard.getPanels().stream()
-                // Dont' render rows
-                .filter(p -> !Objects.equals("row", p.getType()))
+                .flatMap(p -> {
+                    if ("row".equals(p.getType())) {
+                        return p.getPanels().stream();
+                    } else {
+                        return Stream.of(p);
+                    }
+                })
                 .collect(Collectors.toList())
                 .iterator();
     }
@@ -82,25 +92,29 @@ public class GrafanaPanelDatasource implements JRRewindableDataSource {
 
     @Override
     public Object getFieldValue(JRField jrField) throws JRException {
-        int width = 1000;
-        int height = 500;
         Map<String, String> variables = new HashMap<>();
         variables.put("node", "1");
         variables.put("interface", "2");
 
-        if (Objects.equals(WIDTH_FIELD_NAME, jrField.getName())) {
-            return width;
-        } else if (Objects.equals(HEIGHT_FIELD_NAME, jrField.getName())) {
-            return height;
-        } else if (Objects.equals(IMAGE_FIELD_NAME, jrField.getName())) {
+        final String fieldName = jrField.getName();
+        if (Objects.equals(WIDTH_FIELD_NAME, fieldName)) {
+            return query.getWidth();
+        } else if (Objects.equals(HEIGHT_FIELD_NAME, fieldName)) {
+            return query.getHeight();
+        } else if (Objects.equals(TITLE_FIELD_NAME, fieldName)) {
+            return currentPanel.getTitle();
+        } else if (Objects.equals(DATASOURCE_FIELD_NAME, fieldName)) {
+            return currentPanel.getDatasource();
+        } else if (Objects.equals(IMAGE_FIELD_NAME, fieldName)) {
             try {
-                return client.renderPngForPanel(dashboard, currentPanel, width, height,
+                // TODO: Time range should be fed to the report
+                return client.renderPngForPanel(dashboard, currentPanel, query.getWidth(), query.getHeight(),
                         System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1), System.currentTimeMillis(), variables);
             } catch (IOException e) {
                 throw new JRException(e);
             }
         }
-        return null;
+        return "<unknown field name: " + fieldName + ">" ;
     }
 
 }

@@ -28,11 +28,16 @@
 
 package org.opennms.netmgt.grafana.model;
 
-public class Panel {
+import java.util.ArrayList;
+import java.util.List;
+
+public class Panel implements PanelContainer {
 
     private Integer id;
     private String title;
     private String type;
+    private String datasource;
+    private List<Panel> panels = new ArrayList<>();
 
     public Integer getId() {
         return id;
@@ -56,5 +61,33 @@ public class Panel {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getDatasource() {
+        return datasource;
+    }
+
+    public void setDatasource(String datasource) {
+        this.datasource = datasource;
+    }
+
+    @Override
+    public List<Panel> getPanels() {
+        return panels;
+    }
+
+    public void setPanels(List<Panel> panels) {
+        this.panels = panels;
+    }
+
+    @Override
+    public String toString() {
+        return "Panel{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", type='" + type + '\'' +
+                ", datasource='" + datasource + '\'' +
+                ", panels=" + panels +
+                '}';
     }
 }

@@ -32,25 +32,28 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.opennms.netmgt.grafana.model.Dashboard;
 import org.opennms.netmgt.grafana.model.Panel;
+import org.opennms.netmgt.grafana.model.PanelContainer;
 
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 public class GrafanaClientTest {
 
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule();
+    public WireMockRule wireMockRule = new WireMockRule(WireMockConfiguration.wireMockConfig().dynamicPort());
 
     @Test
     public void canGetDashboardAndRenderPng() throws IOException {
@@ -62,16 +65,31 @@ public class GrafanaClientTest {
         GrafanaServerConfiguration config = new GrafanaServerConfiguration(wireMockRule.baseUrl(), "xxxx");
         GrafanaClient client = new GrafanaClient(config);
         Dashboard dashboard = client.getDashboardByUid("eWsVEL6zz");
-        assertThat(dashboard.getPanels(), hasSize(7));
+
+        assertThat(panelTitles(dashboard), contains("Traffic (Flows)", "Traffic by Application",
+                "Traffic by Application",
+                "Traffic (SNMP via MIB-2)",
+                "MIB-2 Traffic",
+                "MIB-2 Errors and Discards",
+                "Conversation (Flows)"));
+
+        Panel row = dashboard.getPanels().get(6);
+        assertThat(panelTitles(row), contains("Traffic by Conversation (Top N)", "Traffic by Conversation (Top N)"));
+
+        Panel panel = dashboard.getPanels().get(0);
+        assertThat(panel.getDatasource(), equalTo("minion-dev (Flow)"));
+
 
         stubFor(get(urlEqualTo("/render/d-solo/eWsVEL6zz/flow?panelId=9&from=0&to=1&width=128&height=128"))
                 .willReturn(aResponse()
-                        .withHeader("Content-Type", "image/png")
-                        .withBodyFile("panel.png")));
+                .withHeader("Content-Type", "image/png")
+                .withBodyFile("panel.png")));
 
-        Panel panel = dashboard.getPanels().get(0);
         byte[] pngBytes = client.renderPngForPanel(dashboard, panel, 128, 128, 0L, 1L, Collections.emptyMap());
         assertThat(pngBytes.length, equalTo(6401));
     }
 
+    private static List<String> panelTitles(PanelContainer container) {
+        return container.getPanels().stream().map(Panel::getTitle).collect(Collectors.toList());
+    }
 }
