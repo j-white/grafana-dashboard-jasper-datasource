@@ -1,0 +1,38 @@
+= Grafana Datasource for JasperReports
+:imagesdir: assets/images
+
+This project is a proof-of-concept for generating PDF reports that contain panels from a Grafana dashboard using JasperReports.
+
+== Using the datasource
+
+Build the package:
+```
+mvn clean install
+```
+
+Point to your Grafana instance:
+```
+$ cat ~/.grafana/server.properties
+url = https://grafana:3000
+apiKey = your_key
+```
+
+Download and install JasperStudio 6.3.0: https://sourceforge.net/projects/jasperstudio/files/JaspersoftStudio-6.3.0/
+
+Create a new project in JasperStudio.
+
+Copy the `flows.jrxml` template from the assets directory to the project.
+
+Add the fat .jar to the classpath of your project:
+
+image::jasperstudio_classpath.png[JasperStudio Classpath Setup,800]
+
+Add a new "Query Executor adapter" to the project: `Project -> New > Data Adapter -> Query Executor adapter`
+
+Configure the report to use the new Query Executor adapter:
+
+image::jasperstudio_queryexec.png[JasperStudio Query Setup,800]
+
+Preview/render the report:
+
+image::jasperstudio_preview.png[JasperStudio Report Preview,800]

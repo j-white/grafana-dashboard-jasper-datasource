@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
 import java.util.Collections;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import net.sf.jasperreports.engine.DefaultJasperReportsContext;
@@ -43,6 +44,7 @@ import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.design.JRDesignDataset;
 import net.sf.jasperreports.engine.design.JRDesignField;
 
+@Ignore("Requires a configured instance")
 public class GrafanaPanelDatasourceTest {
 
     @Test

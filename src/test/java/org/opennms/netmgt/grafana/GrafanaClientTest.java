@@ -76,11 +76,10 @@ public class GrafanaClientTest {
         Panel row = dashboard.getPanels().get(6);
         assertThat(panelTitles(row), contains("Traffic by Conversation (Top N)", "Traffic by Conversation (Top N)"));
 
-        Panel panel = dashboard.getPanels().get(0);
+        Panel panel = dashboard.getPanels().get(1);
         assertThat(panel.getDatasource(), equalTo("minion-dev (Flow)"));
 
-
-        stubFor(get(urlEqualTo("/render/d-solo/eWsVEL6zz/flow?panelId=9&from=0&to=1&width=128&height=128"))
+        stubFor(get(urlEqualTo("/render/d-solo/eWsVEL6zz/flow?panelId=3&from=0&to=1&width=128&height=128&theme=light"))
                 .willReturn(aResponse()
                 .withHeader("Content-Type", "image/png")
                 .withBodyFile("panel.png")));
