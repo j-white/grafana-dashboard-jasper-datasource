@@ -1,0 +1,18 @@
+{
+  "dashboard": {
+    "uid": "eWsVEL6zz"
+  },
+  "time": {
+    "from": 1,
+    "to": 2
+  },
+  "render": {
+    "width": 1,
+    "height": 3,
+    "theme": "light"
+  },
+  "variables": {
+    "node": "1",
+    "interface": "2"
+  }
+}

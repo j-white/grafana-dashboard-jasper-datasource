@@ -29,11 +29,8 @@
 package org.opennms.netmgt.jasper.grafana;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -92,10 +89,6 @@ public class GrafanaPanelDatasource implements JRRewindableDataSource {
 
     @Override
     public Object getFieldValue(JRField jrField) throws JRException {
-        Map<String, String> variables = new HashMap<>();
-        variables.put("node", "1");
-        variables.put("interface", "2");
-
         final String fieldName = jrField.getName();
         if (Objects.equals(WIDTH_FIELD_NAME, fieldName)) {
             return query.getWidth();
@@ -107,9 +100,8 @@ public class GrafanaPanelDatasource implements JRRewindableDataSource {
             return currentPanel.getDatasource();
         } else if (Objects.equals(IMAGE_FIELD_NAME, fieldName)) {
             try {
-                // TODO: Time range should be fed to the report
                 return client.renderPngForPanel(dashboard, currentPanel, query.getWidth(), query.getHeight(),
-                        System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1), System.currentTimeMillis(), variables);
+                        query.getFrom().getTime(), query.getTo().getTime(), query.getVariables());
             } catch (IOException e) {
                 throw new JRException(e);
             }

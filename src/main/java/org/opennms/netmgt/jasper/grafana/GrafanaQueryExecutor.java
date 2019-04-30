@@ -34,6 +34,8 @@ import java.util.Map;
 import org.opennms.netmgt.grafana.GrafanaClient;
 import org.opennms.netmgt.grafana.GrafanaServerConfiguration;
 import org.opennms.netmgt.grafana.model.Dashboard;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRException;
@@ -42,6 +44,7 @@ import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.query.JRAbstractQueryExecuter;
 
 public class GrafanaQueryExecutor extends JRAbstractQueryExecuter {
+    private static final Logger LOG = LoggerFactory.getLogger(GrafanaQueryExecutor.class);
 
     public GrafanaQueryExecutor(JasperReportsContext context, JRDataset dataset, Map<String,? extends JRValueParameter> parameters) {
         super(context, dataset, parameters);
@@ -54,15 +57,16 @@ public class GrafanaQueryExecutor extends JRAbstractQueryExecuter {
 
     @Override
     public GrafanaPanelDatasource createDatasource() throws JRException {
-        final String widthString = this.getStringParameterOrProperty("width");
-        final String heightString = this.getStringParameterOrProperty("height");
-        final GrafanaQuery grafanaQuery = new GrafanaQuery(widthString, heightString);
+        final String queryString = getQueryString();
+        LOG.debug("Create datasource for query '{}'", queryString);
+        final GrafanaQuery grafanaQuery = new GrafanaQuery(queryString);
+        LOG.debug("Parsed query: {}", grafanaQuery);
 
         final GrafanaServerConfiguration config = GrafanaServerConfiguration.fromEnv();
         final GrafanaClient client = new GrafanaClient(config);
         final Dashboard dashboard;
         try {
-            dashboard = client.getDashboardByUid("eWsVEL6zz");
+            dashboard = client.getDashboardByUid(grafanaQuery.getDashboardUid());
         } catch (IOException e) {
             throw new JRException(e);
         }

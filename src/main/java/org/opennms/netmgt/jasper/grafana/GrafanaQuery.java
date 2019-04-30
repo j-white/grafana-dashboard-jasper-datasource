@@ -28,17 +28,43 @@
 
 package org.opennms.netmgt.jasper.grafana;
 
-public class GrafanaQuery {
+import java.util.Date;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-    public static final int DEFAULT_WIDTH = 600;
-    public static final int DEFAULT_HEIGHT = 400;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+public class GrafanaQuery {
+    private final String dashboardUid;
 
     private final int width;
     private final int height;
+    private final String theme;
 
-    public GrafanaQuery(String width, String height) {
-        this.width = intOrDefault(width, DEFAULT_WIDTH);
-        this.height = intOrDefault(height, DEFAULT_HEIGHT);
+    private final Date from;
+    private final Date to;
+
+    private final Map<String, String> variables;
+
+    public GrafanaQuery(String queryString) {
+        JsonParser parser = new JsonParser();
+        JsonObject jo = (JsonObject)parser.parse(queryString);
+        JsonObject dashboard = jo.getAsJsonObject("dashboard");
+        dashboardUid = dashboard.getAsJsonPrimitive("uid").getAsString();
+
+        JsonObject time = jo.getAsJsonObject("time");
+        from = new Date(time.getAsJsonPrimitive("from").getAsLong());
+        to = new Date(time.getAsJsonPrimitive("to").getAsLong());
+
+        JsonObject render = jo.getAsJsonObject("render");
+        width = render.getAsJsonPrimitive("width").getAsInt();
+        height = render.getAsJsonPrimitive("height").getAsInt();
+        theme = render.getAsJsonPrimitive("theme").getAsString();
+
+        JsonObject vars = jo.getAsJsonObject("variables");
+        variables = vars.keySet().stream()
+                .collect(Collectors.toMap(k -> k, k -> vars.getAsJsonPrimitive(k).getAsString()));
     }
 
     public int getWidth() {
@@ -49,14 +75,23 @@ public class GrafanaQuery {
         return height;
     }
 
-    private static int intOrDefault(String intAsString, int defaultValue) {
-        if (intAsString == null) {
-            return defaultValue;
-        }
-        try {
-            return Integer.parseInt(intAsString);
-        } catch (NumberFormatException nfe) {
-            return defaultValue;
-        }
+    public String getDashboardUid() {
+        return dashboardUid;
+    }
+
+    public Map<String, String> getVariables() {
+        return variables;
+    }
+
+    public Date getFrom() {
+        return from;
+    }
+
+    public Date getTo() {
+        return to;
+    }
+
+    public String getTheme() {
+        return theme;
     }
 }

@@ -11,12 +11,45 @@
 	<parameter name="height" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["1572"]]></defaultValueExpression>
 	</parameter>
+	<parameter name="startDate" class="java.util.Date">
+		<parameterDescription><![CDATA[Report Start Date]]></parameterDescription>
+		<defaultValueExpression><![CDATA[new java.util.Date(
+new GregorianCalendar(new GregorianCalendar().get(Calendar.YEAR), new GregorianCalendar().get(Calendar.MONTH), new GregorianCalendar().get(Calendar.DATE) - 1).getTimeInMillis()
+)]]></defaultValueExpression>
+	</parameter>
+	<parameter name="endDate" class="java.util.Date">
+		<parameterDescription><![CDATA[Report End Date]]></parameterDescription>
+		<defaultValueExpression><![CDATA[new java.util.Date(
+new GregorianCalendar(new GregorianCalendar().get(Calendar.YEAR), new GregorianCalendar().get(Calendar.MONTH), new GregorianCalendar().get(Calendar.DATE)).getTimeInMillis()
+)]]></defaultValueExpression>
+	</parameter>
+	<parameter name="startDateTime" class="java.lang.Long" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{startDate}.getTime()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="endDateTime" class="java.lang.Long" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{endDate}.getTime()]]></defaultValueExpression>
+	</parameter>
 	<queryString language="grafana">
-		<![CDATA[test]]>
+		<![CDATA[{
+			"dashboard": {
+			  "uid": "eWsVEL6zz"
+			},
+			"time": {
+			  "from": $P{startDateTime},
+			  "to": $P{endDateTime}
+			},
+			"render": {
+			  "width": $P{width},
+			  "height": $P{height},
+			  "theme": "light"
+			},
+			"variables": {
+			  "node": "1",
+			  "interface": "2"
+			}
+		}]]>
 	</queryString>
-	<field name="png" class="java.lang.Object">
-		<fieldDescription><![CDATA[]]></fieldDescription>
-	</field>
+	<field name="png" class="java.lang.Object" />
 	<field name="title" class="java.lang.String"/>
 	<field name="datasource" class="java.lang.String"/>
 	<field name="width" class="java.lang.Integer"/>
