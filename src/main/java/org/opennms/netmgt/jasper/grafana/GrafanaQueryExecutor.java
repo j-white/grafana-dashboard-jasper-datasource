@@ -48,6 +48,9 @@ public class GrafanaQueryExecutor extends JRAbstractQueryExecuter {
 
     public GrafanaQueryExecutor(JasperReportsContext context, JRDataset dataset, Map<String,? extends JRValueParameter> parameters) {
         super(context, dataset, parameters);
+        if (dataset != null) {
+            parseQuery();
+        }
     }
 
     @Override

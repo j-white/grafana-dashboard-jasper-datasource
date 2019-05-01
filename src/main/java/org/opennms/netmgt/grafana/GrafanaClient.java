@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.security.cert.CertificateException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -54,17 +55,19 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class GrafanaClient {
-    private final GrafanaServerConfiguration grafanaServerConfiguration;
+    private final GrafanaServerConfiguration config;
 
     private final Gson gson = new Gson();
     private final OkHttpClient client;
     private final HttpUrl baseUrl;
 
     public GrafanaClient(GrafanaServerConfiguration grafanaServerConfiguration) {
-        this.grafanaServerConfiguration = Objects.requireNonNull(grafanaServerConfiguration);
+        this.config = Objects.requireNonNull(grafanaServerConfiguration);
         baseUrl = HttpUrl.parse(grafanaServerConfiguration.getUrl());
 
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                .connectTimeout(config.getConnectTimeoutSeconds(), TimeUnit.SECONDS)
+                .readTimeout(config.getReadTimeoutSeconds(), TimeUnit.SECONDS);
         builder = configureToIgnoreCertificate(builder);
         client = builder.build();
     }
@@ -79,7 +82,7 @@ public class GrafanaClient {
 
         final Request request = new Request.Builder()
                 .url(url)
-                .addHeader("Authorization", "Bearer " + grafanaServerConfiguration.getApiKey())
+                .addHeader("Authorization", "Bearer " + config.getApiKey())
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
@@ -110,7 +113,7 @@ public class GrafanaClient {
 
         final Request request = new Request.Builder()
                 .url(builder.build())
-                .addHeader("Authorization", "Bearer " + grafanaServerConfiguration.getApiKey())
+                .addHeader("Authorization", "Bearer " + config.getApiKey())
                 .build();
 
         //System.out.println("MOO: " + request);

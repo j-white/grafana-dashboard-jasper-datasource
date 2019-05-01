@@ -48,6 +48,7 @@ public class GrafanaPanelDatasource implements JRRewindableDataSource {
     public static final String HEIGHT_FIELD_NAME = "height";
     public static final String TITLE_FIELD_NAME = "title";
     public static final String DATASOURCE_FIELD_NAME = "datasource";
+    public static final String DESCRIPTION_FIELD_NAME = "description";
 
     private final GrafanaClient client;
     private final Dashboard dashboard;
@@ -98,12 +99,14 @@ public class GrafanaPanelDatasource implements JRRewindableDataSource {
             return currentPanel.getTitle();
         } else if (Objects.equals(DATASOURCE_FIELD_NAME, fieldName)) {
             return currentPanel.getDatasource();
+        } else if (Objects.equals(DESCRIPTION_FIELD_NAME, fieldName)) {
+            return currentPanel.getDescription();
         } else if (Objects.equals(IMAGE_FIELD_NAME, fieldName)) {
             try {
                 return client.renderPngForPanel(dashboard, currentPanel, query.getWidth(), query.getHeight(),
                         query.getFrom().getTime(), query.getTo().getTime(), query.getVariables());
             } catch (IOException e) {
-                throw new JRException(e);
+                throw new JRException("Exception while rendering panel: " + currentPanel.getTitle(), e);
             }
         }
         return "<unknown field name: " + fieldName + ">" ;

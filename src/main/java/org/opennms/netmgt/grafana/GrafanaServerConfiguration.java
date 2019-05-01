@@ -36,9 +36,14 @@ import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Properties;
 
+/**
+ * TODO: Migrate this to immutable with builder pattern
+ */
 public class GrafanaServerConfiguration {
     private final String url;
     private final String apiKey;
+    private final int connectTimeoutSeconds;
+    private final int readTimeoutSeconds;
 
     public static GrafanaServerConfiguration fromEnv() {
         final File configFile = Paths.get(System.getProperty("user.home"), ".grafana", "server.properties").toFile();
@@ -48,15 +53,20 @@ public class GrafanaServerConfiguration {
             prop.load(input);
             final String url = prop.getProperty("url");
             final String apiKey = prop.getProperty("apiKey");
-            return new GrafanaServerConfiguration(url, apiKey);
+            // TODO: Be more defensive and add defaults
+            final int connectTimeout = Integer.parseInt(prop.getProperty("connectTimeout"));
+            final int readTimeout = Integer.parseInt(prop.getProperty("readTimeout"));
+            return new GrafanaServerConfiguration(url, apiKey, connectTimeout, readTimeout);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public GrafanaServerConfiguration(String url, String apiKey) {
+    public GrafanaServerConfiguration(String url, String apiKey, int connectTimeoutSeconds, int readTimeoutSeconds) {
         this.url = Objects.requireNonNull(url);
         this.apiKey = Objects.requireNonNull(apiKey);
+        this.connectTimeoutSeconds = connectTimeoutSeconds;
+        this.readTimeoutSeconds = readTimeoutSeconds;
     }
 
     public String getUrl() {
@@ -67,11 +77,21 @@ public class GrafanaServerConfiguration {
         return apiKey;
     }
 
+    public int getConnectTimeoutSeconds() {
+        return connectTimeoutSeconds;
+    }
+
+    public int getReadTimeoutSeconds() {
+        return readTimeoutSeconds;
+    }
+
     @Override
     public String toString() {
         return "GrafanaServerConfiguration{" +
                 "url='" + url + '\'' +
                 ", apiKey='" + apiKey + '\'' +
+                ", connectTimeoutSeconds=" + connectTimeoutSeconds +
+                ", readTimeoutSeconds=" + readTimeoutSeconds +
                 '}';
     }
 }

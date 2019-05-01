@@ -62,7 +62,7 @@ public class GrafanaClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBodyFile("dashboard.json")));
 
-        GrafanaServerConfiguration config = new GrafanaServerConfiguration(wireMockRule.baseUrl(), "xxxx");
+        GrafanaServerConfiguration config = new GrafanaServerConfiguration(wireMockRule.baseUrl(), "xxxx", 5, 5);
         GrafanaClient client = new GrafanaClient(config);
         Dashboard dashboard = client.getDashboardByUid("eWsVEL6zz");
 
@@ -77,7 +77,9 @@ public class GrafanaClientTest {
         assertThat(panelTitles(row), contains("Traffic by Conversation (Top N)", "Traffic by Conversation (Top N)"));
 
         Panel panel = dashboard.getPanels().get(1);
+        assertThat(panel.getId(), equalTo(3));
         assertThat(panel.getDatasource(), equalTo("minion-dev (Flow)"));
+        assertThat(panel.getDescription(), equalTo("igb0"));
 
         stubFor(get(urlEqualTo("/render/d-solo/eWsVEL6zz/flow?panelId=3&from=0&to=1&width=128&height=128&theme=light"))
                 .willReturn(aResponse()

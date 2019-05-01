@@ -37,6 +37,7 @@ public class Panel implements PanelContainer {
     private String title;
     private String type;
     private String datasource;
+    private String description;
     private List<Panel> panels = new ArrayList<>();
 
     public Integer getId() {
@@ -71,6 +72,14 @@ public class Panel implements PanelContainer {
         this.datasource = datasource;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     @Override
     public List<Panel> getPanels() {
         return panels;
@@ -87,7 +96,9 @@ public class Panel implements PanelContainer {
                 ", title='" + title + '\'' +
                 ", type='" + type + '\'' +
                 ", datasource='" + datasource + '\'' +
+                ", description='" + description + '\'' +
                 ", panels=" + panels +
                 '}';
     }
+
 }

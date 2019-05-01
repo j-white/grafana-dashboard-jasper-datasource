@@ -36,3 +36,28 @@ image::jasperstudio_queryexec.png[JasperStudio Query Setup,800]
 Preview/render the report:
 
 image::jasperstudio_preview.png[JasperStudio Report Preview,800]
+
+=== Query String
+
+The query string for the datasource should look like:
+
+```
+{
+    "dashboard": {
+      "uid": "eWsVEL6zz"
+    },
+    "time": {
+      "from": $P{startDateTime},
+      "to": $P{endDateTime}
+    },
+    "render": {
+      "width": 1149,
+      "height": 1572,
+      "theme": "light"
+    },
+    "variables": {
+      "node": "1",
+      "interface": "2"
+    }
+}
+```
