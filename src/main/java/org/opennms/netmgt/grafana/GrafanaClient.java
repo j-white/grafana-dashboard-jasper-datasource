@@ -36,9 +36,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -61,14 +59,16 @@ public class GrafanaClient {
     private final OkHttpClient client;
     private final HttpUrl baseUrl;
 
-    public GrafanaClient(GrafanaServerConfiguration grafanaServerConfiguration) {
-        this.config = Objects.requireNonNull(grafanaServerConfiguration);
-        baseUrl = HttpUrl.parse(grafanaServerConfiguration.getUrl());
+    public GrafanaClient(GrafanaServerConfiguration config) {
+        this.config = Objects.requireNonNull(config);
+        baseUrl = HttpUrl.parse(config.getUrl());
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
-                .connectTimeout(config.getConnectTimeoutSeconds(), TimeUnit.SECONDS)
-                .readTimeout(config.getReadTimeoutSeconds(), TimeUnit.SECONDS);
-        builder = configureToIgnoreCertificate(builder);
+                .connectTimeout(config.getConnectTimeoutMs(), TimeUnit.MILLISECONDS)
+                .readTimeout(config.getReadTimeoutMs(), TimeUnit.MILLISECONDS);
+        if (!config.isStrictSsl()) {
+            builder = configureToIgnoreCertificate(builder);
+        }
         client = builder.build();
     }
 
@@ -100,7 +100,7 @@ public class GrafanaClient {
                 .addPathSegment("render")
                 .addPathSegment("d-solo")
                 .addPathSegment(dashboard.getUid())
-                .addPathSegments("flow"); //FIXME: What should this be?
+                .addPathSegments("z"); // We need some string here, but it doesn't seem to matter what it is
 
         // Query parameters
         builder.addQueryParameter("panelId", Integer.toString(panel.getId()))
@@ -109,6 +109,8 @@ public class GrafanaClient {
                 .addQueryParameter("width", Integer.toString(width))
                 .addQueryParameter("height", Integer.toString(height))
                 .addQueryParameter("theme", "light"); // Use the light theme
+        // TODO: Add support for timezone - passed as TZ=X via environment variable to PhantomJS
+        // See https://github.com/grafana/grafana/blob/2fff8f77dcdc90ab9a4890eeed95d8f3dced370b/pkg/services/rendering/phantomjs.go
         variables.forEach((k,v) -> builder.addQueryParameter("var-"+ k, v));
 
         final Request request = new Request.Builder()
@@ -116,7 +118,6 @@ public class GrafanaClient {
                 .addHeader("Authorization", "Bearer " + config.getApiKey())
                 .build();
 
-        //System.out.println("MOO: " + request);
         try (Response response = client.newCall(request).execute()) {
             try (InputStream is = response.body().byteStream()) {
                 return inputStreamToByteArray(is);
@@ -125,19 +126,19 @@ public class GrafanaClient {
     }
 
     private static byte[] inputStreamToByteArray(InputStream is) throws IOException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int nRead;
-        byte[] data = new byte[1024];
-        while ((nRead = is.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, nRead);
+        try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+            int nRead;
+            final byte[] data = new byte[1024];
+            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+            buffer.flush();
+            return buffer.toByteArray();
         }
-        buffer.flush();
-        return buffer.toByteArray();
     }
 
     private static OkHttpClient.Builder configureToIgnoreCertificate(OkHttpClient.Builder builder) {
         try {
-
             // Create a trust manager that does not validate certificate chains
             final TrustManager[] trustAllCerts = new TrustManager[] {
                     new X509TrustManager() {
@@ -165,12 +166,7 @@ public class GrafanaClient {
             final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
             builder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0]);
-            builder.hostnameVerifier(new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            });
+            builder.hostnameVerifier((hostname, session) -> true);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

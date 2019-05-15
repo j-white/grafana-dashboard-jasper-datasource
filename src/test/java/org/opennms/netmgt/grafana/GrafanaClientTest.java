@@ -62,7 +62,10 @@ public class GrafanaClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBodyFile("dashboard.json")));
 
-        GrafanaServerConfiguration config = new GrafanaServerConfiguration(wireMockRule.baseUrl(), "xxxx", 5, 5);
+        GrafanaServerConfiguration config = GrafanaServerConfiguration.builder()
+                .withUrl(wireMockRule.baseUrl())
+                .withApiKey("xxxx")
+                .build();
         GrafanaClient client = new GrafanaClient(config);
         Dashboard dashboard = client.getDashboardByUid("eWsVEL6zz");
 
@@ -81,7 +84,7 @@ public class GrafanaClientTest {
         assertThat(panel.getDatasource(), equalTo("minion-dev (Flow)"));
         assertThat(panel.getDescription(), equalTo("igb0"));
 
-        stubFor(get(urlEqualTo("/render/d-solo/eWsVEL6zz/flow?panelId=3&from=0&to=1&width=128&height=128&theme=light"))
+        stubFor(get(urlEqualTo("/render/d-solo/eWsVEL6zz/z?panelId=3&from=0&to=1&width=128&height=128&theme=light"))
                 .willReturn(aResponse()
                 .withHeader("Content-Type", "image/png")
                 .withBodyFile("panel.png")));
