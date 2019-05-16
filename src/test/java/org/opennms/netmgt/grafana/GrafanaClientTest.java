@@ -34,6 +34,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
@@ -46,6 +47,7 @@ import org.junit.Test;
 import org.opennms.netmgt.grafana.model.Dashboard;
 import org.opennms.netmgt.grafana.model.Panel;
 import org.opennms.netmgt.grafana.model.PanelContainer;
+import org.opennms.netmgt.grafana.model.SearchResult;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -54,6 +56,36 @@ public class GrafanaClientTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(WireMockConfiguration.wireMockConfig().dynamicPort());
+
+    private GrafanaServerConfiguration getClientConfig() {
+        return GrafanaServerConfiguration.builder()
+                .withUrl(wireMockRule.baseUrl())
+                .withApiKey("xxxx")
+                .build();
+    }
+
+    @Test
+    public void canSearchForDashboards() throws IOException {
+        stubFor(get(urlEqualTo("/api/search?type=dash-db&query=abc"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("search.json")));
+
+        // Search for dashboards
+        GrafanaClient client = new GrafanaClient(getClientConfig());
+        List<SearchResult> results = client.searchForDashboards("abc");
+        assertThat(results, hasSize(4));
+
+        // Verify a specific entry
+        SearchResult result = results.get(0);
+        assertThat(result.getId(), equalTo(14));
+        assertThat(result.getUid(), equalTo("QS9VaTFmz"));
+        assertThat(result.getTitle(), equalTo("Bamboo"));
+        assertThat(result.getUrl(), equalTo("/d/QS9VaTFmz/bamboo"));
+        assertThat(result.getType(), equalTo("dash-db"));
+        assertThat(result.getTags(), contains("tag1", "tag2"));
+        assertThat(result.isStarred(), equalTo(true));
+    }
 
     @Test
     public void canGetDashboardAndRenderPng() throws IOException {
@@ -66,7 +98,7 @@ public class GrafanaClientTest {
                 .withUrl(wireMockRule.baseUrl())
                 .withApiKey("xxxx")
                 .build();
-        GrafanaClient client = new GrafanaClient(config);
+        GrafanaClient client = new GrafanaClient(getClientConfig());
         Dashboard dashboard = client.getDashboardByUid("eWsVEL6zz");
 
         assertThat(panelTitles(dashboard), contains("Traffic (Flows)", "Traffic by Application",

@@ -1,0 +1,41 @@
+[{
+  "id": 14,
+  "uid": "QS9VaTFmz",
+  "title": "Bamboo",
+  "uri": "db/bamboo",
+  "url": "/d/QS9VaTFmz/bamboo",
+  "slug": "",
+  "type": "dash-db",
+  "tags": ["tag1", "tag2"],
+  "isStarred": true
+},{
+  "id": 6,
+  "uid": "000000006",
+  "title": "Minion",
+  "uri": "db/minion",
+  "url": "/d/000000006/minion",
+  "slug": "",
+  "type": "dash-db",
+  "tags": [],
+  "isStarred": false
+},{
+  "id": 22,
+  "uid": "mjkV0rkZk",
+  "title": "Network Planning Report",
+  "uri": "db/network-planning-report",
+  "url": "/d/mjkV0rkZk/network-planning-report",
+  "slug": "",
+  "type": "dash-db",
+  "tags": [],
+  "isStarred": false
+},{
+  "id": 20,
+  "uid": "Boa1U78mz",
+  "title": "Wagon",
+  "uri": "db/wagon",
+  "url": "/d/Boa1U78mz/wagon",
+  "slug": "",
+  "type": "dash-db",
+  "tags": [],
+  "isStarred": false
+}]

@@ -32,6 +32,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +46,7 @@ import javax.net.ssl.X509TrustManager;
 import org.opennms.netmgt.grafana.model.Dashboard;
 import org.opennms.netmgt.grafana.model.DashboardWithMeta;
 import org.opennms.netmgt.grafana.model.Panel;
+import org.opennms.netmgt.grafana.model.SearchResult;
 
 import com.google.gson.Gson;
 
@@ -70,6 +73,30 @@ public class GrafanaClient {
             builder = configureToIgnoreCertificate(builder);
         }
         client = builder.build();
+    }
+
+    public List<SearchResult> searchForDashboards(String query) throws IOException {
+        final HttpUrl.Builder builder = baseUrl.newBuilder()
+                .addPathSegment("api")
+                .addPathSegment("search")
+                .addQueryParameter("type", "dash-db");
+        if (query != null) {
+            builder.addQueryParameter("query", query);
+        }
+
+        final Request request = new Request.Builder()
+                .url(builder.build())
+                .addHeader("Authorization", "Bearer " + config.getApiKey())
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Request failed: " + response.body().string());
+            }
+            final String json = response.body().string();
+            final SearchResult[] results = gson.fromJson(json, SearchResult[].class);
+            return Arrays.asList(results);
+        }
     }
 
     public Dashboard getDashboardByUid(String uid) throws IOException {
