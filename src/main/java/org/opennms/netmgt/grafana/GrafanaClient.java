@@ -45,6 +45,7 @@ import javax.net.ssl.X509TrustManager;
 
 import org.opennms.netmgt.grafana.model.Dashboard;
 import org.opennms.netmgt.grafana.model.DashboardWithMeta;
+import org.opennms.netmgt.grafana.model.Health;
 import org.opennms.netmgt.grafana.model.Panel;
 import org.opennms.netmgt.grafana.model.SearchResult;
 
@@ -73,6 +74,26 @@ public class GrafanaClient {
             builder = configureToIgnoreCertificate(builder);
         }
         client = builder.build();
+    }
+
+    public Health getServerHealth() throws IOException {
+        final HttpUrl url = baseUrl.newBuilder()
+                .addPathSegment("api")
+                .addPathSegment("health")
+                .build();
+
+        final Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + config.getApiKey())
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Request failed: " + response.body().string());
+            }
+            final String json = response.body().string();
+            return gson.fromJson(json, Health.class);
+        }
     }
 
     public List<SearchResult> searchForDashboards(String query) throws IOException {
@@ -199,4 +220,5 @@ public class GrafanaClient {
         }
         return builder;
     }
+
 }

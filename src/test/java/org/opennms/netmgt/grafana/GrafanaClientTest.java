@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 import org.junit.Rule;
 import org.junit.Test;
 import org.opennms.netmgt.grafana.model.Dashboard;
+import org.opennms.netmgt.grafana.model.Health;
 import org.opennms.netmgt.grafana.model.Panel;
 import org.opennms.netmgt.grafana.model.PanelContainer;
 import org.opennms.netmgt.grafana.model.SearchResult;
@@ -94,10 +95,6 @@ public class GrafanaClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBodyFile("dashboard.json")));
 
-        GrafanaServerConfiguration config = GrafanaServerConfiguration.builder()
-                .withUrl(wireMockRule.baseUrl())
-                .withApiKey("xxxx")
-                .build();
         GrafanaClient client = new GrafanaClient(getClientConfig());
         Dashboard dashboard = client.getDashboardByUid("eWsVEL6zz");
 
@@ -123,6 +120,21 @@ public class GrafanaClientTest {
 
         byte[] pngBytes = client.renderPngForPanel(dashboard, panel, 128, 128, 0L, 1L, Collections.emptyMap());
         assertThat(pngBytes.length, equalTo(6401));
+    }
+
+    @Test
+    public void canGetHealth() throws IOException {
+        stubFor(get(urlEqualTo("/api/health"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("health.json")));
+
+        GrafanaClient client = new GrafanaClient(getClientConfig());
+        Health health = client.getServerHealth();
+
+        assertThat(health.getCommit(), equalTo("5d16da7"));
+        assertThat(health.getDatabase(), equalTo("ok"));
+        assertThat(health.getVersion(), equalTo("6.2.0"));
     }
 
     private static List<String> panelTitles(PanelContainer container) {
